@@ -166,73 +166,87 @@
     @keyframes pop{ from{ opacity:.6 } to{ opacity:1 } }
 
     /* ROUND (only photo + times) */
-    .stage{
-      width:min(1100px, 100%);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:18px;
-      position: relative;
-    }
-
-    .photoWrap{
-      width:100%;
-      aspect-ratio: 16/9;
-      border-radius:24px;
-      overflow:hidden;
-      border:1px solid #ffffff22;
-      background:#00000035;
-      box-shadow:0 12px 40px #00000055;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position: relative;
-    }
-
-    img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-
-    .times{
-      width:100%;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top:100px;
-      padding:0 40px;
-    }
-
-    .timeRow{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      color:#fff;
-      font-weight:900;
-    }
-
-    .timeRow.left{ justify-content:flex-start; }
-    .timeRow.right{ justify-content:flex-end; }
+      .stage{
+        width:100%;
+        height:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:flex-start;
+        gap:24px;
+        position: relative;
+        padding:12px 24px 24px;
+      }
+      
+      .photoWrap{
+        width:min(1720px, 100%);
+        flex:1;
+        min-height:0;
+        border-radius:24px;
+        overflow:hidden;
+        border:1px solid #ffffff22;
+        background:#00000035;
+        box-shadow:0 12px 40px #00000055;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position: relative;
+      }
+      
+      .times{
+        width:min(1720px, 100%);
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:24px;
+        padding:0;
+        margin-top:0;
+      }
+      
+      .timeRow{
+        display:flex;
+        align-items:center;
+        gap:16px;
+        color:#fff;
+        font-weight:900;
+        padding:16px 22px;
+        border-radius:22px;
+        border:2px solid transparent;
+        background:rgba(0,0,0,0.22);
+        transition: border-color .12s ease, box-shadow .12s ease, background .12s ease, transform .12s ease;
+      }
+      
+      .timeRow.left{ justify-content:flex-start; }
+      .timeRow.right{ justify-content:flex-end; }
+      
+      .timeRow.activeTurn{
+        border-color: rgba(255,255,255,0.95);
+        box-shadow:
+          0 0 0 3px rgba(255,255,255,0.18) inset,
+          0 0 22px rgba(255,255,255,0.20);
+        background: rgba(255,255,255,0.08);
+        transform: scale(1.02);
+      }
 
     .playerLabel{
       display:none !important;
     }
 
     .playerName{
-      font-size:50px;
+      font-size:58px;
       text-transform:uppercase;
       white-space:nowrap;
+      line-height:1;
     }
-
+    
     .time{
-      font-size:60px;
+      font-size:72px;
       font-weight:900;
       letter-spacing:1px;
       text-shadow:0 0 28px #00000080;
-      min-width:110px;
+      min-width:140px;
       text-align:center;
+      line-height:1;
     }
 
     .time.right{ text-align:right; }
@@ -297,9 +311,10 @@
     /* ====== ANSWER BELOW PHOTO ====== */
     .answer{
       position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      width:min(1400px, calc(100% - 80px));
+      bottom: 120px;
       width:100%;
       min-height:52px;
       display:flex;
@@ -320,10 +335,10 @@
       margin: 0 !important;
     }
 
-    .answer.show{
-      opacity:1;
-      transform: translateY(0);
-    }
+      .answer.show{
+        opacity:1;
+        transform: translateX(-50%) translateY(0);
+      }
 
     .loadBtn{
       padding:14px 20px;
@@ -471,6 +486,8 @@
 
   const nameAInput = document.getElementById("nameA");
   const nameBInput = document.getElementById("nameB");
+  const rowA = document.querySelector(".timeRow.left");
+  const rowB = document.querySelector(".timeRow.right");
   const loadBtn = document.getElementById("loadBtn");
   const folderInput = document.getElementById("folderInput");
   const nameA_live = document.getElementById("nameA_live");
@@ -643,12 +660,18 @@
     return `${mm}:${ss}`;
   }
 
-  function renderTimers(){
-    elA.textContent = fmt(timeA);
-    elB.textContent = fmt(timeB);
-    elA.classList.toggle("active", active === "A");
-    elB.classList.toggle("active", active === "B");
-  }
+    function renderTimers(){
+      elA.textContent = fmt(timeA);
+      elB.textContent = fmt(timeB);
+    
+      elA.classList.toggle("active", active === "A");
+      elB.classList.toggle("active", active === "B");
+    
+      if (rowA && rowB) {
+        rowA.classList.toggle("activeTurn", active === "A");
+        rowB.classList.toggle("activeTurn", active === "B");
+      }
+    }
 
   function shuffle(arr){
     for (let i = arr.length - 1; i > 0; i--){
