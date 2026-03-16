@@ -2,400 +2,168 @@
   ORG HUB SYSTEMS
   Licensed software – all rights reserved
 -->
+<style>
+/* ROUND (photo + answer + times) */
+.stage{
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-rows: 1fr 120px 130px;
+  align-items:stretch;
+  gap:18px;
+  padding:12px 24px 24px;
+}
 
+.photoWrap{
+  width:min(1780px, 100%);
+  height:100%;
+  min-height:0;
+  margin:0 auto;
+  border-radius:24px;
+  overflow:hidden;
+  border:1px solid #ffffff22;
+  background:#00000035;
+  box-shadow:0 12px 40px #00000055;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position: relative;
+}
+
+#photo{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+.answer{
+  width:min(1780px, 100%);
+  height:120px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px 28px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,0.20);
+  background:rgba(0,0,0,0.30);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.04),
+    0 8px 24px rgba(0,0,0,0.22);
+  font-size:72px;
+  font-weight:1000;
+  letter-spacing:.6px;
+  line-height:1;
+  text-align:center;
+  opacity:0;
+  transform: translateY(-4px);
+  transition: opacity .12s ease, transform .12s ease;
+  pointer-events:none;
+}
+
+.answer.show{
+  opacity:1;
+  transform: translateY(0);
+}
+
+.times{
+  width:min(1780px, 100%);
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+  padding:0;
+}
+
+.timeRow{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  color:#fff;
+  font-weight:900;
+  padding:18px 24px;
+  border-radius:22px;
+  border:2px solid transparent;
+  background:rgba(0,0,0,0.28);
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease, transform .12s ease;
+  min-width:300px;
+}
+
+.timeRow.left{
+  justify-content:flex-start;
+}
+
+.timeRow.right{
+  justify-content:flex-end;
+}
+
+.timeRow.activeTurn{
+  border-color: rgba(255,255,255,0.95);
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.18) inset,
+    0 0 22px rgba(255,255,255,0.20);
+  background: rgba(255,255,255,0.08);
+  transform: scale(1.02);
+}
+
+.playerLabel{
+  display:none !important;
+}
+
+.playerName{
+  font-size:58px;
+  text-transform:uppercase;
+  white-space:nowrap;
+  line-height:1;
+}
+
+.time{
+  font-size:34px;
+  font-weight:1000;
+  letter-spacing:.5px;
+  text-shadow:0 0 18px #00000080;
+  min-width:110px;
+  line-height:1;
+  opacity:0.95;
+  flex:0 0 auto;
+}
+
+.time.left{
+  text-align:left;
+}
+
+.time.right{
+  text-align:right;
+}
+
+.active{
+  filter: brightness(1.25);
+}
+
+/* PHOTO FEEDBACK */
+.photoWrap.correct{
+  box-shadow:
+    0 0 0 6px rgba(0, 200, 0, 0.9),
+    0 0 25px rgba(0, 200, 0, 0.6);
+  border-radius:18px;
+}
+
+.photoWrap.wrong{
+  box-shadow:
+    0 0 0 6px rgba(220, 0, 0, 0.9),
+    0 0 25px rgba(220, 0, 0, 0.6);
+  border-radius:18px;
+}
+</style>
 <!doctype html>
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>The Floor – Operator</title>
-  <style>
-    :root{
-      --bg:#0b1b2b;
-      --text:#fff;
-      --muted:#b7c7d8;
-      --app-scale: 1;
-    }
-    *{ box-sizing:border-box; font-family:system-ui, Arial; }
-    body{
-      margin:0;
-      background: radial-gradient(1200px 700px at 50% 0%, #1a4fa340, transparent), var(--bg);
-      color:var(--text);
-      min-height:100vh;
-      overflow:hidden;
-    }
 
-    /* ====== FIXED 1920x1080 VIEWPORT — RESPONSIVE FIT ====== */
-    #viewport{
-      position:fixed;
-      top:50%;
-      left:50%;
-      width:1920px;
-      height:1080px;
-      background:inherit;
-      transform:translate(-50%, -50%) scale(var(--app-scale, 1));
-      transform-origin:center center;
-      overflow:hidden;
-    }
-
-    .screen{
-      display:none;
-      width:100%;
-      height:100%;
-      padding:24px;
-    }
-
-    .screen.active{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    /* MENU (operator setup) */
-    .card{
-      width:100%;
-      height:100%;
-      max-width:none;
-      background: linear-gradient(180deg, #ffffff10, #ffffff08);
-      border:1px solid #ffffff18;
-      border-radius:24px;
-      padding:24px;
-      box-shadow:0 12px 40px #00000055;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-
-    .topRow{
-      display:flex;
-      gap:12px;
-      flex-wrap:nowrap;
-      margin-bottom:0;
-    }
-
-    .inputBox{
-      flex:1 1 240px;
-      background:#00000025;
-      border:1px solid #ffffff18;
-      border-radius:18px;
-      padding:10px;
-    }
-
-    .inputBox input{
-      width:100%;
-      height:72px;
-      padding:12px 18px;
-      border-radius:14px;
-      border:1px solid #ffffff22;
-      background:#00000030;
-      color:#fff;
-      outline:none;
-      font-size:28px;
-      font-weight:900;
-      letter-spacing:.3px;
-    }
-
-    .grid{
-      flex:1;
-      min-height:0;
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-rows: repeat(3, minmax(0, 1fr));
-      gap:10px;
-    }
-    
-    .tile{
-      height:100%;
-      min-height:0;
-      padding:18px;
-      border-radius:18px;
-      cursor:pointer;
-      user-select:none;
-      background: linear-gradient(180deg, #ffffff12, #ffffff08);
-      border:1px solid #ffffff1a;
-      transition: transform .08s ease, border-color .08s ease, background .08s ease;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    /* ====== USED CATEGORY (this session) ====== */
-    .tile.loaded{
-      border-color: rgba(220, 0, 0, 0.65) !important;
-      box-shadow: 0 0 0 2px rgba(220, 0, 0, 0.25) inset, 0 0 22px rgba(220, 0, 0, 0.25);
-      background: linear-gradient(180deg, rgba(220,0,0,0.18), rgba(255,255,255,0.08));
-    }
-
-    .tile:hover{
-      transform: translateY(-2px);
-      border-color:#ffffff30;
-      background: linear-gradient(180deg, #ffffff18, #ffffff0c);
-    }
-
-    .tile input{
-      width:92%;
-      height:58%;
-      min-height:120px;
-      padding:24px 28px;
-      border-radius:20px;
-      border:1px solid #ffffff28;
-      background:rgba(0,0,0,0.24);
-      color:#fff;
-      outline:none;
-      font-size:56px;
-      font-weight:1000;
-      letter-spacing:.5px;
-      line-height:1.1;
-      text-align:center;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.05),
-        0 10px 30px rgba(0,0,0,0.18);
-    }
-
-    /* READY (full screen title only) */
-    .bigTitle{
-      font-size:min(96px, 9vw);
-      font-weight:1000;
-      letter-spacing:1px;
-      text-align:center;
-      text-shadow:0 0 28px #00000080;
-      padding:24px;
-    }
-
-    /* COUNTDOWN */
-    .countWrap{ text-align:center; }
-    .count{
-      font-size:min(140px, 14vw);
-      font-weight:1000;
-      letter-spacing:2px;
-      text-shadow:0 0 28px #00000080;
-    }
-    .go{ animation: none; }
-    @keyframes pop{ from{ opacity:.6 } to{ opacity:1 } }
-
-    /* ROUND (only photo + times) */
-      .stage{
-        width:100%;
-        height:100%;
-        display:grid;
-        grid-template-rows: 1fr 90px 120px;
-        align-items:stretch;
-        gap:18px;
-        padding:12px 24px 24px;
-      }
-      
-      .photoWrap{
-        width:min(1780px, 100%);
-        height:100%;
-        min-height:0;
-        margin:0 auto;
-        border-radius:24px;
-        overflow:hidden;
-        border:1px solid #ffffff22;
-        background:#00000035;
-        box-shadow:0 12px 40px #00000055;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        position: relative;
-      }
-
-          #photo{
-        width:100%;
-        height:100%;
-        object-fit:contain;
-        display:block;
-      }
-      
-      .times{
-        width:min(1720px, 100%);
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:24px;
-        padding:0;
-        margin-top:0;
-      }
-      
-      .timeRow{
-        display:flex;
-        align-items:center;
-        gap:16px;
-        color:#fff;
-        font-weight:900;
-        padding:16px 22px;
-        border-radius:22px;
-        border:2px solid transparent;
-        background:rgba(0,0,0,0.22);
-        transition: border-color .12s ease, box-shadow .12s ease, background .12s ease, transform .12s ease;
-      }
-      
-      .timeRow.left{ justify-content:flex-start; }
-      .timeRow.right{ justify-content:flex-end; }
-      
-      .timeRow.activeTurn{
-        border-color: rgba(255,255,255,0.95);
-        box-shadow:
-          0 0 0 3px rgba(255,255,255,0.18) inset,
-          0 0 22px rgba(255,255,255,0.20);
-        background: rgba(255,255,255,0.08);
-        transform: scale(1.02);
-      }
-
-    .playerLabel{
-      display:none !important;
-    }
-
-    .playerName{
-      font-size:58px;
-      text-transform:uppercase;
-      white-space:nowrap;
-      line-height:1;
-    }
-    
-    .times{
-      width:min(1780px, 100%);
-      margin:0 auto;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:24px;
-      padding:0;
-    }
-
-    .time.right{ text-align:right; }
-
-    .active{
-      filter: brightness(1.25);
-    }
-
-    @keyframes pulse{
-      0%,100%{ transform: translateY(0); }
-      50%{ transform: translateY(-2px); }
-    }
-
-    /* WINNER (no extra hints) */
-    .winnerWrap{ text-align:center; }
-    .winnerTitle{
-      font-size:min(120px, 12vw);
-      font-weight:1000;
-      letter-spacing:2px;
-      text-shadow:0 0 32px #00000090;
-    }
-    .winnerName{
-      margin-top:10px;
-      font-size:min(84px, 9vw);
-      font-weight:1000;
-      text-shadow:0 0 28px #00000080;
-    }
-
-    /* ====== BRANDING ====== */
-    #branding{
-      position: absolute;
-      top: 24px;
-      right: 32px;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      opacity: 0.85;
-      pointer-events: none;
-      text-transform: uppercase;
-    }
-
-    /* ====== FULLSCREEN BUTTON ====== */
-    #fsBtn{
-      position:absolute;
-      top:24px;
-      left:32px;
-      width:44px;
-      height:44px;
-      border-radius:14px;
-      border:1px solid #ffffff25;
-      background:#00000035;
-      color:#fff;
-      font-size:20px;
-      font-weight:900;
-      cursor:pointer;
-      opacity:.85;
-      user-select:none;
-      z-index:10;
-    }
-    #fsBtn:hover{ opacity:1; }
-
-    /* ====== ANSWER BELOW PHOTO ====== */
-    .answer{
-      width:min(1780px, 100%);
-      height:90px;
-      margin:0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 24px;
-      border-radius:18px;
-      border:1px solid #ffffff18;
-      background:#00000025;
-      font-size:56px;
-      font-weight:1000;
-      letter-spacing:.5px;
-      text-align:center;
-      opacity:0;
-      transform: translateY(-4px);
-      transition: opacity .12s ease, transform .12s ease;
-      pointer-events:none;
-    }
-
-    .answer.show{
-      opacity:1;
-      transform: translateY(0);
-    }
-
-    .loadBtn{
-      padding:14px 20px;
-      border-radius:16px;
-      border:1px solid #ffffff25;
-      background:#00000035;
-      color:#fff;
-      font-size:20px;
-      font-weight:900;
-      letter-spacing:.5px;
-      cursor:pointer;
-      opacity:.9;
-    }
-    .loadBtn:hover{ opacity:1; }
-
-    /* ====== HIDE OPERATOR BUTTONS IN FULLSCREEN (robust) ====== */
-    :fullscreen #fsBtn,
-    :fullscreen #loadBtn,
-    :fullscreen #sCatBtn,
-    :fullscreen #sOkBtn,
-    :fullscreen #sPassBtn{
-      display:none !important;
-    }
-
-    :-webkit-full-screen #fsBtn,
-    :-webkit-full-screen #loadBtn,
-    :-webkit-full-screen #sCatBtn,
-    :-webkit-full-screen #sOkBtn,
-    :-webkit-full-screen #sPassBtn{
-      display:none !important;
-    }
-
-    /* ====== PHOTO FEEDBACK ====== */
-    .photoWrap.correct{
-      box-shadow: 0 0 0 6px rgba(0, 200, 0, 0.9),
-                  0 0 25px rgba(0, 200, 0, 0.6);
-      border-radius: 18px;
-    }
-
-    .photoWrap.wrong{
-      box-shadow: 0 0 0 6px rgba(220, 0, 0, 0.9),
-                  0 0 25px rgba(220, 0, 0, 0.6);
-      border-radius: 18px;
-    }
-  </style>
 </head>
 <body>
 
@@ -438,30 +206,30 @@
     </div>
   </div>
 
-  <!-- ROUND -->
-  <div id="round" class="screen">
-    <div class="stage">
-      <div class="photoWrap">
-        <img id="photo" alt="zdjęcie" />
+<!-- ROUND -->
+<div id="round" class="screen">
+  <div class="stage">
+    <div class="photoWrap">
+      <img id="photo" alt="zdjęcie" />
+    </div>
+
+    <div id="answer" class="answer"></div>
+
+    <div class="times">
+      <div class="timeRow left">
+        <div class="playerLabel">PLAYER A</div>
+        <div id="timeA" class="time left active">00:45</div>
+        <div id="nameA_live" class="playerName"></div>
       </div>
 
-      <div id="answer" class="answer"></div>
-
-      <div class="times">
-        <div class="timeRow left">
-          <div class="playerLabel">PLAYER A</div>
-          <div id="timeA" class="time active">01:00</div>
-          <div id="nameA_live" class="playerName"></div>
-        </div>
-
-        <div class="timeRow right">
-          <div id="nameB_live" class="playerName"></div>
-          <div id="timeB" class="time">01:00</div>
-          <div class="playerLabel">PLAYER B</div>
-        </div>
+      <div class="timeRow right">
+        <div id="nameB_live" class="playerName"></div>
+        <div id="timeB" class="time right">00:45</div>
+        <div class="playerLabel">PLAYER B</div>
       </div>
     </div>
   </div>
+</div>
 
   <!-- WINNER -->
   <div id="winner" class="screen">
