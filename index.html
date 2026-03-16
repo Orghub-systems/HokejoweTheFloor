@@ -223,16 +223,16 @@
       .timeRow{
         display:flex;
         align-items:center;
-        gap:16px;
+        gap:20px;
         color:#fff;
         font-weight:900;
-        padding:16px 22px;
+        padding:18px 26px;
         border-radius:22px;
         border:2px solid transparent;
-        background:rgba(0,0,0,0.22);
+        background:rgba(0,0,0,0.28);
         transition: border-color .12s ease, box-shadow .12s ease, background .12s ease, transform .12s ease;
+        min-width:320px;
       }
-      
       .timeRow.left{ justify-content:flex-start; }
       .timeRow.right{ justify-content:flex-end; }
       
@@ -249,12 +249,12 @@
       display:none !important;
     }
 
-    .playerName{
-      font-size:58px;
-      text-transform:uppercase;
-      white-space:nowrap;
-      line-height:1;
-    }
+      .playerName{
+        font-size:54px;
+        text-transform:uppercase;
+        white-space:nowrap;
+        line-height:1;
+      }
     
     .times{
       width:min(1780px, 100%);
@@ -326,31 +326,37 @@
     #fsBtn:hover{ opacity:1; }
 
     /* ====== ANSWER BELOW PHOTO ====== */
-    .answer{
-      width:min(1780px, 100%);
-      height:90px;
-      margin:0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 24px;
-      border-radius:18px;
-      border:1px solid #ffffff18;
-      background:#00000025;
-      font-size:56px;
-      font-weight:1000;
-      letter-spacing:.5px;
-      text-align:center;
-      opacity:0;
-      transform: translateY(-4px);
-      transition: opacity .12s ease, transform .12s ease;
-      pointer-events:none;
-    }
-
-    .answer.show{
-      opacity:1;
-      transform: translateY(0);
-    }
+      .answer{
+        position:absolute;
+        left:50%;
+        bottom:110px;
+        transform:translateX(-50%) translateY(-4px);
+        width:min(1500px, calc(100% - 120px));
+        min-height:96px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:16px 28px;
+        border-radius:20px;
+        border:1px solid rgba(255,255,255,0.20);
+        background:rgba(0,0,0,0.34);
+        box-shadow:
+          inset 0 0 0 1px rgba(255,255,255,0.04),
+          0 8px 24px rgba(0,0,0,0.22);
+        font-size:68px;
+        font-weight:1000;
+        letter-spacing:.5px;
+        line-height:1;
+        text-align:center;
+        opacity:0;
+        transition: opacity .12s ease, transform .12s ease;
+        pointer-events:none;
+        margin:0 !important;
+      }
+      .answer.show{
+        opacity:1;
+        transform:translateX(-50%) translateY(0);
+      }
 
     .loadBtn{
       padding:14px 20px;
